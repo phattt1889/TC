@@ -1,0 +1,1 @@
+https://github.com/TheCookieLab/poloniex-api-java/blob/master/src/main/java/com/cf/client/poloniex/PoloniexTradingAPIClient.java
