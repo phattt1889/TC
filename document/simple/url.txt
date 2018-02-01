@@ -2,3 +2,6 @@ https://github.com/TheCookieLab/poloniex-api-java/blob/master/src/main/java/com/
 https://stackoverflow.com/questions/30528255/how-to-access-a-value-defined-in-the-application-properties-file-in-spring-boot
 @Value("${userBucket.path}")
 private String userBucketPath;
+
+// deloy jar file
+https://mydevgeek.com/deploying-spring-boot-application-aws-using-ec2-rds/

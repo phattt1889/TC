@@ -43,7 +43,7 @@ public class LoginController {
 		TradeFactory tf = new TradeFactory(StockExchangeEnums.POLONIEX);
 		TradeApiService poloniexStock = tf.getCurrentStockExchange(user);
 		
-		Object result = poloniexStock.getBalances();
+		Object result = poloniexStock.getDepositAddresses();
 		
 		System.out.println(result.toString());
 		
