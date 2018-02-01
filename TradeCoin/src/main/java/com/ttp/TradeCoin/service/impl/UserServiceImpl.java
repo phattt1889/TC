@@ -4,6 +4,7 @@
 package com.ttp.TradeCoin.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.ttp.TradeCoin.dao.UserDao;
 import com.ttp.TradeCoin.entity.User;
@@ -13,6 +14,7 @@ import com.ttp.TradeCoin.service.UserService;
  * @author phattt
  *
  */
+@Service
 public class UserServiceImpl implements UserService {
 	
 	@Autowired

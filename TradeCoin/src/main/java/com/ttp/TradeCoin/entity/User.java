@@ -5,8 +5,10 @@ package com.ttp.TradeCoin.entity;
 
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -14,6 +16,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -44,6 +47,17 @@ public class User {
     
     @ElementCollection(targetClass=Role.class)
     private Set<Role> roles;
+    
+    @Column(name = "tokenId")
+    private Long tokenId;
+    
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "id")
+    private TokenCurrency tokenCurrency;
+    
+    @Embedded
+    private ChangeInfo changeInfo;
+    
 	/**
 	 * @return the id
 	 */
@@ -118,5 +132,41 @@ public class User {
 	 */
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+	/**
+	 * @return the changeInfo
+	 */
+	public ChangeInfo getChangeInfo() {
+		return changeInfo;
+	}
+	/**
+	 * @param changeInfo the changeInfo to set
+	 */
+	public void setChangeInfo(ChangeInfo changeInfo) {
+		this.changeInfo = changeInfo;
+	}
+	/**
+	 * @return the tokenId
+	 */
+	public Long getTokenId() {
+		return tokenId;
+	}
+	/**
+	 * @param tokenId the tokenId to set
+	 */
+	public void setTokenId(Long tokenId) {
+		this.tokenId = tokenId;
+	}
+	/**
+	 * @return the tokenCurrency
+	 */
+	public TokenCurrency getTokenCurrency() {
+		return tokenCurrency;
+	}
+	/**
+	 * @param tokenCurrency the tokenCurrency to set
+	 */
+	public void setTokenCurrency(TokenCurrency tokenCurrency) {
+		this.tokenCurrency = tokenCurrency;
 	}
 }

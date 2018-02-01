@@ -1,1 +1,4 @@
 https://github.com/TheCookieLab/poloniex-api-java/blob/master/src/main/java/com/cf/client/poloniex/PoloniexTradingAPIClient.java
+https://stackoverflow.com/questions/30528255/how-to-access-a-value-defined-in-the-application-properties-file-in-spring-boot
+@Value("${userBucket.path}")
+private String userBucketPath;
