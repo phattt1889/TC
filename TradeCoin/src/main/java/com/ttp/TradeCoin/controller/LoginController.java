@@ -40,10 +40,14 @@ public class LoginController {
 		User user = userService.findUserByUserId(userId);
 		
 		// init factory trade
-		TradeFactory tf = new TradeFactory(StockExchangeEnums.POLONIEX);
-		TradeApiService poloniexStock = tf.getCurrentStockExchange(user);
+		TradeFactory tf = new TradeFactory();
+//		TradeApiService poloniexStock = tf.getCurrentStockExchange(user);
+//		
+//		Object result = poloniexStock.getDepositAddresses();
 		
-		Object result = poloniexStock.getDepositAddresses();
+		TradeApiService bittexStock = tf.getCurrentStockExchange(user, StockExchangeEnums.BITTREX);
+		
+		Object result = bittexStock.getBalances();
 		
 		System.out.println(result.toString());
 		

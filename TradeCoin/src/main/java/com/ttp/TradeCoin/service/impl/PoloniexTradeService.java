@@ -6,18 +6,13 @@ package com.ttp.TradeCoin.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
-import org.apache.commons.codec.binary.Hex;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-import com.ttp.TradeCoin.Enums.PoloniexMethodPrivateEnums;
+import com.ttp.TradeCoin.Enums.StockExchangeMethodAPIEnums;
 import com.ttp.TradeCoin.common.CommonUtils;
-import com.ttp.TradeCoin.http.HTTPClient;
+import com.ttp.TradeCoin.http.ExecuteApiResults;
 import com.ttp.TradeCoin.service.TradeApiService;
 
 /**
@@ -30,11 +25,11 @@ public class PoloniexTradeService implements TradeApiService {
 	
 	private String keySecret;
 	
+	@Value("${poloniex.private.url}")
 	private String urlPrivate;
 	
+	@Value("${poloniex.public.url}")
 	private String urlPublic;
-	
-	private HTTPClient httpClient;
 	
 	@Value("${poloniex.fee}")
 	private Long fee;
@@ -43,11 +38,6 @@ public class PoloniexTradeService implements TradeApiService {
 		super();
 		this.keyApi = keyApi;
 		this.keySecret = keySecret;
-		this.urlPrivate = urlPrivate;
-		this.urlPublic = urlPublic;
-		
-		// init http client
-		httpClient = new HTTPClient();
 	}
 
 	@Override
@@ -58,12 +48,12 @@ public class PoloniexTradeService implements TradeApiService {
 
 	@Override
 	public Object getBalances() {
-		return returnTradingAPICommandResults(PoloniexMethodPrivateEnums.GET_BALANCES.getLabel());
+		return returnTradingAPICommandResults(StockExchangeMethodAPIEnums.GET_BALANCES);
 	}
 
 	@Override
 	public Object getDepositAddresses() {
-		return returnTradingAPICommandResults(PoloniexMethodPrivateEnums.GET_DEPOSIT_ADDRESS.getLabel());
+		return returnTradingAPICommandResults(StockExchangeMethodAPIEnums.GET_DEPOSIT_ADDRESS);
 	}
 
 	@Override
@@ -74,7 +64,7 @@ public class PoloniexTradeService implements TradeApiService {
 		// add currency generate
 		params.add(new BasicNameValuePair("currency", currency));
 		
-		return returnTradingAPICommandResults(PoloniexMethodPrivateEnums.GET_GENERATE_ADDRESS.getLabel(), params);
+		return returnTradingAPICommandResults(StockExchangeMethodAPIEnums.GET_GENERATE_ADDRESS, params);
 	}
 
 	@Override
@@ -92,7 +82,7 @@ public class PoloniexTradeService implements TradeApiService {
 		// add currency generate
 		params.add(new BasicNameValuePair("currencyPair", currencyPair));
 		
-		return returnTradingAPICommandResults(PoloniexMethodPrivateEnums.GET_OPEN_ORDERS.getLabel(), params);
+		return returnTradingAPICommandResults(StockExchangeMethodAPIEnums.GET_OPEN_ORDERS, params);
 	}
 
 	@Override
@@ -113,7 +103,7 @@ public class PoloniexTradeService implements TradeApiService {
 			}
 		}
 		
-		return returnTradingAPICommandResults(PoloniexMethodPrivateEnums.GET_TRADE_HISTORY.getLabel(), params);
+		return returnTradingAPICommandResults(StockExchangeMethodAPIEnums.GET_TRADE_HISTORY, params);
 	}
 
 	@Override
@@ -136,7 +126,7 @@ public class PoloniexTradeService implements TradeApiService {
 		params.add(new BasicNameValuePair("amount", actualAmount.toString()));
 		params.add(new BasicNameValuePair("immediateOrCancel", immediateOrCancel));
 		
-		return returnTradingAPICommandResults(PoloniexMethodPrivateEnums.GET_BUY.getLabel(), params);
+		return returnTradingAPICommandResults(StockExchangeMethodAPIEnums.GET_BUY, params);
 	}
 
 	@Override
@@ -157,13 +147,17 @@ public class PoloniexTradeService implements TradeApiService {
 		params.add(new BasicNameValuePair("amount", amount.toString()));
 		params.add(new BasicNameValuePair("immediateOrCancel", immediateOrCancel));
 		
-		return returnTradingAPICommandResults(PoloniexMethodPrivateEnums.GET_SELL.getLabel(), params);
+		return returnTradingAPICommandResults(StockExchangeMethodAPIEnums.GET_SELL, params);
 	}
 
 	@Override
 	public Object exeCancelOrder(String orderNumber) {
-		// TODO Auto-generated method stub
-		return null;
+		List<NameValuePair> params = new ArrayList<>();
+		
+		// add params
+		params.add(new BasicNameValuePair("orderNumber", orderNumber));
+		
+		return returnTradingAPICommandResults(StockExchangeMethodAPIEnums.GET_CANCEL_ORDER, params);
 	}
 
 	@Override
@@ -184,56 +178,25 @@ public class PoloniexTradeService implements TradeApiService {
 		return null;
 	}
 
-	private Object returnTradingAPICommandResults(String commandValue, List<NameValuePair> params) {
+	private Object returnTradingAPICommandResults(StockExchangeMethodAPIEnums commandValue, List<NameValuePair> params) {
 		
 		// add default post param
-		List<NameValuePair> poloniexPost = new ArrayList<>();
+		List<NameValuePair> stockExchangePost = new ArrayList<>();
 		
 		// add value
-		poloniexPost.add(new BasicNameValuePair("nonce", String.valueOf(System.currentTimeMillis())));
-		poloniexPost.add(new BasicNameValuePair("command", commandValue));
+		stockExchangePost.add(new BasicNameValuePair("nonce", String.valueOf(System.currentTimeMillis())));
+		stockExchangePost.add(new BasicNameValuePair("command", commandValue.getPoloniex()));
 		
 		// add params from variable params
 		if (params != null && params.size() > 0) {
-			poloniexPost.addAll(params);
+			stockExchangePost.addAll(params);
 		}
 		
-		// get str request
-		StringBuilder buildParam = new StringBuilder();
-		for (NameValuePair param : poloniexPost) {
-			
-			// check string
-			if (buildParam.length() > 0) {
-				buildParam.append("&");
-			}
-			
-			// add request param
-			buildParam.append(param.getName()).append("=").append(param.getValue());
-		}
-		
-		String body = buildParam.toString();
-		
-		try {
-			// data singed
-			Mac mac = Mac.getInstance("HmacSHA512");
-			mac.init(new SecretKeySpec(keySecret.getBytes(), "HmacSHA512"));
-			
-			String signature = new String(Hex.encodeHex(mac.doFinal(body.getBytes())));
-			
-			// add header
-			List<NameValuePair> paramHeader = new ArrayList<>();
-			paramHeader.add(new BasicNameValuePair("Key", keyApi));
-			paramHeader.add(new BasicNameValuePair("Sign", signature));
-			
-			return httpClient.postHttp(urlPrivate, poloniexPost, paramHeader);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return null;
+		return ExecuteApiResults.returnTradingAPICommandResults(stockExchangePost, urlPrivate, "Key", "Sign",
+																								keyApi, keySecret);
 	}
 
-	private Object returnTradingAPICommandResults(String commandValue) {
+	private Object returnTradingAPICommandResults(StockExchangeMethodAPIEnums commandValue) {
 
 		// empty list params
 		List<NameValuePair> params = new ArrayList<>();

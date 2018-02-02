@@ -52,7 +52,7 @@ public class User {
     private Long tokenId;
     
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "id", referencedColumnName = "tokenId")
     private TokenCurrency tokenCurrency;
     
     @Embedded

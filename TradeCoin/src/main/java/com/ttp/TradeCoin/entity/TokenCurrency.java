@@ -8,10 +8,14 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+
+import com.ttp.TradeCoin.Enums.StockExchangeEnums;
 
 /**
  * @author phattt
@@ -36,6 +40,9 @@ public class TokenCurrency implements Serializable {
 	
 	@Column(name = "keySecret")
 	private String keySecret;
+	
+	@Enumerated(EnumType.STRING)
+	private StockExchangeEnums stockExchange;
 	
 	@Embedded
     private ChangeInfo changeInfo;
@@ -94,5 +101,19 @@ public class TokenCurrency implements Serializable {
 	 */
 	public void setChangeInfo(ChangeInfo changeInfo) {
 		this.changeInfo = changeInfo;
+	}
+
+	/**
+	 * @return the stockExchange
+	 */
+	public StockExchangeEnums getStockExchange() {
+		return stockExchange;
+	}
+
+	/**
+	 * @param stockExchange the stockExchange to set
+	 */
+	public void setStockExchange(StockExchangeEnums stockExchange) {
+		this.stockExchange = stockExchange;
 	}
 }

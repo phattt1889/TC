@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-//@ComponentScan(basePackages = {"TradeCoin"})
+@ComponentScan(basePackages = {"com.ttp.TradeCoin"})
 public class TradeCoinApplication {
 
 	public static void main(String[] args) {
