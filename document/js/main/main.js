@@ -36,10 +36,10 @@ setInterval(() => {
 
 	// check minute
 	let minute = date.getMinutes();
-	if (minute == 30 || minute == 1) {
+	if ((minute/15)%2 == 0) {
 
 		// write value
-		fs.appendFileSync(namefile, 'Max value : ' + maxValue +' || Min value : ' + minValue +' || money : ' + money + ' || coins : ' + coins, (err) => {
+		fs.appendFileSync(namefile, 'Max value : ' + maxValue +' || Min value : ' + minValue +' || money : ' + balanceUSDT + ' || coins : ' + balanceCoin, (err) => {
 	  		if(err) {
 	  			poloniex.unSubscribe(channelSubcribe);
 	  			poloniex.closeWebSocket();
@@ -51,10 +51,25 @@ setInterval(() => {
 		maxValue = 0;
 		minValue = 0;
 		currentValue = 0;
+		flagBuy = true;
+	  	flagSell = true;
 		namefile = prefix + Math.round((new Date()).getTime()/1000) + '.txt';
 	}
 
 }, 60000);
+
+var balanceUSDT = 0;
+var balanceCoin = 0;
+var nameCoin = 'ETH';
+// get balance
+setInterval(() => {
+	poloniex.returnBalances((err, data) => {
+	  if (!err) {
+	  	balanceUSDT = data.USDT;
+	  	balanceCoin = data[nameCoin];
+	  } 
+	});
+}, 10000);
 
 /*poloniex.returnTradeHistory('USDT_ETH', start, end, null, function (err, data) {
   if (err) {
@@ -105,11 +120,10 @@ poloniex.on('message', (channelName, data) => {
 	  	}
 
 	  	// check buy
-	  	if (flagBuy && (currentValue - minValue >= (minValue * buyPercent))) {
+	  	if ((balanceUSDT > 2) && (currentValue - minValue >= (minValue * buyPercent))) {
 	  		console.log('buy value : ' + currentValue + ' | min value : ' + minValue);
 	  		buyValue = currentValue;
-	  		flagBuy = false;
-	  		flagSell = true;
+	  		flagBuy = false;;
 
 	  		fs.appendFileSync(namefile, 'Buy value : ' + buyValue + '\r\n', (err) => {
 		  		if(err) {
@@ -129,11 +143,8 @@ poloniex.on('message', (channelName, data) => {
 
 	  	// check sell
 	  	console.log('buyValue : ' + buyValue + ' | currentValue - buyValue : ' + (currentValue - buyValue) + " || (buyValue * sellPercent) : " + (buyValue * sellPercent));
-	  	if (flagSell && buyValue != 0 && ((currentValue - buyValue) >= (buyValue * sellPercent))) {
+	  	if (balanceCoin >= 0.005 && buyValue > 0) {
 	  		console.log('sell value : ' + currentValue + ' | buy value : ' + buyValue);
-	  		buyValue = 0;
-	  		flagBuy = true;
-	  		flagSell = false;
 
 	  		fs.appendFileSync(namefile, 'Sell value : ' + currentValue + '\r\n', (err) => {
 		  		if(err) {
@@ -144,7 +155,9 @@ poloniex.on('message', (channelName, data) => {
 		  		console.log('Save');
 		  	});
 
-			poloniex.emit('executeSell', currentValue);
+	  		var sellOrderVal = buyValue + (buyValue * sellPercent);
+
+			poloniex.emit('orderSell', sellOrderVal);
 	  	}
 
 	  	fs.appendFileSync(namefile, JSON.stringify(element.data) + '\r\n', (err) => {
@@ -166,15 +179,33 @@ poloniex.openWebSocket({ version: 2 });
 poloniex.on('executeBuy', (value) => {
 	console.log('executeBuy');
 
+
 	// number coins has bought
 	// get coin by when - fee
-	var m = this.money - (this.money * fee);
-	this.coins = m/value;
+	var m = this.balanceUSDT - (this.balanceUSDT * fee);
+	this.balanceCoin = m/value;
 
+	// order Buy
+	poloniex.buy('USDT_' + nameCoin, value, this.balanceCoin, null, null, null, (err, data) => {
+	  if (!err) console.log(data);
+	  	else throw err;
+	});
 });
 
 poloniex.on('executeSell', (value) => {
 	console.log('executeSell');
-	var m = this.coins * value;
-	this.money = m - (m * fee);
+	var m = this.balanceCoin * value;
+	this.balanceUSDT = m - (m * fee);
+});
+
+poloniex.on('orderSell', (value) => {
+	console.log('executeSell');
+	var m = this.balanceCoin * value;
+	this.balanceUSDT = m - (m * fee);
+
+	// order Buy
+	poloniex.sell('USDT_' + nameCoin, value, this.balanceCoin, null, null, null, (err, data) => {
+	  if (!err) console.log(data);
+	  	else throw err;
+	});
 });
